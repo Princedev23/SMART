@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Login Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Simple Login Test</h1>
+    
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="page active">
+        <h2>Login</h2>
+        <div>
+            <button onclick="selectRole('student')" id="btn-student">Student</button>
+            <button onclick="selectRole('lecturer')" id="btn-lecturer">Lecturer</button>
+            <button onclick="selectRole('admin')" id="btn-admin">Admin</button>
+        </div>
+        <p>Selected role: <span id="selected-role">student</span></p>
+        
+        <form id="test-login-form">
+            <input type="email" id="test-email" placeholder="Email" value="student@school.edu"><br>
+            <input type="password" id="test-password" placeholder="Password" value="password"><br>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-message"></p>
+    </div>
+    
+    <!-- STUDENT PAGE -->
+    <div id="student-page" class="page">
+        <h2 style="color: green;">✓ SUCCESS! Student Dashboard</h2>
+        <p>You are now logged in as a student!</p>
+        <button onclick="logout()">Logout</button>
+    </div>
+    
+    <!-- LECTURER PAGE -->
+    <div id="lecturer-page" class="page">
+        <h2 style="color: green;">✓ SUCCESS! Lecturer Dashboard</h2>
+        <p>You are now logged in as a lecturer!</p>
+        <button onclick="logout()">Logout</button>
+    </div>
+    
+    <!-- ADMIN PAGE -->
+    <div id="admin-page" class="page">
+        <h2 style="color: green;">✓ SUCCESS! Admin Dashboard</h2>
+        <p>You are now logged in as an admin!</p>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script type="module">
+        let selectedRole = 'student';
+        
+        window.selectRole = function(role) {
+            selectedRole = role;
+            document.getElementById('selected-role').textContent = role;
+        };
+        
+        document.getElementById('test-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Form submitted, role:', selectedRole);
+            
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+            const msg = document.getElementById('login-message');
+            
+            msg.textContent = 'Logging in...';
+            msg.className = '';
+            
+            try {
+                const response = await fetch('/smart/api/auth.php?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role: selectedRole })
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (data.success) {
+                    msg.textContent = 'Login successful!';
+                    msg.className = 'success';
+                    
+                    // Hide all pages
+                    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                    
+                    // Show the appropriate dashboard
+                    document.getElementById(`${data.user.role}-page`).classList.add('active');
+                } else {
+                    msg.textContent = 'Error: ' + (data.error || 'Unknown error');
+                    msg.className = 'error';
+                }
+            } catch (error) {
+                msg.textContent = 'Error: ' + error.message;
+                msg.className = 'error';
+            }
+        });
+        
+        window.logout = function() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('login-page').classList.add('active');
+            document.getElementById('login-message').textContent = '';
+        };
+    </script>
+</body>
+</html>

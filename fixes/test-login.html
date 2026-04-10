@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test Login API</h1>
+    
+    <button onclick="testLogin('lecturer')">Test Lecturer Login</button>
+    <button onclick="testLogin('student')">Test Student Login</button>
+    <button onclick="testLogin('admin')">Test Admin Login</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE_URL = '/smart/api';
+        
+        async function testLogin(role) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="result">Testing ${role} login...</div>`;
+            
+            let email, password;
+            if (role === 'lecturer') {
+                email = 'lecturer@school.edu';
+                password = 'password123';
+            } else if (role === 'student') {
+                email = 'student@school.edu';
+                password = 'password123';
+            } else {
+                email = 'admin@school.edu';
+                password = 'password123';
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth.php?action=login`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (data.success) {
+                    resultsDiv.innerHTML += `<div class="result success">✓ ${role} login SUCCESS! User: ${JSON.stringify(data.user)}</div>`;
+                } else {
+                    resultsDiv.innerHTML += `<div class="result error">✗ ${role} login FAILED: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `<div class="result error">✗ ${role} login ERROR: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
